@@ -20,9 +20,11 @@ import br.com.suzintech.filmespopulares.data.model.Filme;
 public class ListaFilmeAdapter extends RecyclerView.Adapter<ListaFilmeAdapter.ListaFilmesViewHolder> {
 
     private List<Filme> filmes;
+    private static ItemFilmeClickListener itemFilmeClickListener;
 
-    public ListaFilmeAdapter() {
+    public ListaFilmeAdapter(ItemFilmeClickListener itemFilmeClickListener) {
         this.filmes = new ArrayList<>();
+        this.itemFilmeClickListener = itemFilmeClickListener;
     }
 
     @NonNull
@@ -47,15 +49,27 @@ public class ListaFilmeAdapter extends RecyclerView.Adapter<ListaFilmeAdapter.Li
     static class ListaFilmesViewHolder extends RecyclerView.ViewHolder {
         private TextView txtTituloFilme;
         private ImageView imagePosterFilme;
+        private Filme filme;
 
         public ListaFilmesViewHolder(View itemView) {
             super(itemView);
 
             txtTituloFilme = itemView.findViewById(R.id.item_txtTituloFilme);
             imagePosterFilme = itemView.findViewById(R.id.item_imagePosterFilme);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (itemFilmeClickListener != null) {
+                        itemFilmeClickListener.onItemFilmeClicado(filme);
+                    }
+                }
+            });
         }
 
         public void bind(Filme filme) {
+            this.filme = filme;
+
             txtTituloFilme.setText(filme.getTitulo());
             Picasso.get().load("https://image.tmdb.org/t/p/w342/" + filme.getCaminhoPoster()).into(imagePosterFilme);
         }
@@ -64,5 +78,9 @@ public class ListaFilmeAdapter extends RecyclerView.Adapter<ListaFilmeAdapter.Li
     public void setFilmes(List<Filme> filmes) {
         this.filmes = filmes;
         notifyDataSetChanged();
+    }
+
+    public interface ItemFilmeClickListener {
+        void onItemFilmeClicado(Filme filme);
     }
 }

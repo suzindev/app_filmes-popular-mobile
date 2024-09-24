@@ -15,6 +15,9 @@
         android:theme="@style/Theme.FilmesPopulares"
         tools:targetApi="31">
         <activity
+            android:name=".ui.DetalhesFilmeActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>

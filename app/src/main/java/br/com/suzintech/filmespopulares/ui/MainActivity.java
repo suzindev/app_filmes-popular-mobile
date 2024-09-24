@@ -1,5 +1,6 @@
 package br.com.suzintech.filmespopulares.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -8,19 +9,17 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.List;
+
 import br.com.suzintech.filmespopulares.R;
-import br.com.suzintech.filmespopulares.data.mapper.FilmeMapper;
-import br.com.suzintech.filmespopulares.data.network.ApiService;
-import br.com.suzintech.filmespopulares.data.network.response.FilmeResult;
+import br.com.suzintech.filmespopulares.data.model.Filme;
 import br.com.suzintech.filmespopulares.ui.adapter.ListaFilmeAdapter;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        ListaFilmesContrato.ListaFilmesView, ListaFilmeAdapter.ItemFilmeClickListener {
 
-    private RecyclerView recyclerView;
     private ListaFilmeAdapter filmesAdapter;
+    private ListaFilmesContrato.ListaFilmesPresenter presenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +29,14 @@ public class MainActivity extends AppCompatActivity {
         configuraToolbar();
         configuraAdapter();
 
-        obtemFilmes();
+        presenter = new ListaFilmesPresenter(this);
+        presenter.obtemFilmes();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        presenter.destruirView();
     }
 
     private void configuraToolbar() {
@@ -39,9 +45,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void configuraAdapter() {
-        recyclerView = findViewById(R.id.main_lista_filmes);
+        final RecyclerView recyclerView = findViewById(R.id.main_lista_filmes);
 
-        filmesAdapter = new ListaFilmeAdapter();
+        filmesAdapter = new ListaFilmeAdapter(this);
 
         RecyclerView.LayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
 
@@ -49,29 +55,20 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(filmesAdapter);
     }
 
-    private void obtemFilmes() {
-        ApiService.getInstance()
-                .obterFilmesPopulares("8006b6a9af753f6c739b1254bc6f670f")
-                .enqueue(new Callback<FilmeResult>() {
-                    @Override
-                    public void onResponse(Call<FilmeResult> call, Response<FilmeResult> response) {
-                        if (response.isSuccessful()) {
-                            filmesAdapter.setFilmes(
-                                    FilmeMapper.deResponseParaDominio(
-                                            response.body().getResultado()));
-                        } else {
-                            mostraErro();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<FilmeResult> call, Throwable t) {
-                        mostraErro();
-                    }
-                });
+    @Override
+    public void mostraFilmes(List<Filme> lista) {
+        filmesAdapter.setFilmes(lista);
     }
 
-    private void mostraErro() {
+    @Override
+    public void mostraErro() {
         Toast.makeText(this, "Erro ao obter lista de filmes", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onItemFilmeClicado(Filme filme) {
+        Intent intent = new Intent(this, DetalhesFilmeActivity.class);
+        intent.putExtra(DetalhesFilmeActivity.EXTRA_FILME, filme);
+        startActivity(intent);
     }
 }
